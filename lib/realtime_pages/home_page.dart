@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:perseus/firestore_pages/books_page.dart';
 import 'package:perseus/models/todo.dart';
 import 'package:perseus/service/authentication.dart';
 
@@ -142,6 +143,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  booksPage() async {
+    try {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => BooksPage(
+        userId: widget.userId,
+        auth: widget.auth,
+      )));
+    } catch (e) {
+      print(e);
+    }
+  }
+
   addNewTodo(String todoItem) {
     if (todoItem.length > 0) {
       Todo todo = new Todo(todoItem.toString(), widget.userId, false);
@@ -252,6 +264,10 @@ class _HomePageState extends State<HomePage> {
         appBar: new AppBar(
           title: new Text('Flutter login demo'),
           actions: <Widget>[
+            new FlatButton(
+                child: new Text('Books',
+                    style: new TextStyle(fontSize: 17.0, color: Colors.white)),
+                onPressed: booksPage),
             new FlatButton(
                 child: new Text('Logout',
                     style: new TextStyle(fontSize: 17.0, color: Colors.white)),

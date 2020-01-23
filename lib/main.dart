@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:perseus/pages/root_page.dart';
+import 'package:perseus/realtime_pages/root_page.dart';
 import 'package:perseus/service/authentication.dart';
 
 void main() {
