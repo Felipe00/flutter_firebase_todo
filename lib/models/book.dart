@@ -8,14 +8,8 @@ class Book {
 
   Book(this.description, this.title, this.userId);
 
-  Book.fromSnapshot(DataSnapshot snapshot)
-      : key = snapshot.key,
-        description = snapshot.value['description'],
-        title = snapshot.value['title'],
-        userId = snapshot.value['user_id'];
-
-  Book.fromMap(Map<String, dynamic> snapshot)
-      : key = snapshot.containsKey('key') ? snapshot['key'] : null,
+  Book.fromMap(Map<String, dynamic> snapshot, String documentID)
+      : key = documentID,
         description = snapshot.containsKey('description')
             ? snapshot['description']
             : null,

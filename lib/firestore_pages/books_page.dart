@@ -59,7 +59,7 @@ class _BooksPageState extends State<BooksPage> {
       ), //center
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showAddBookDialog(context);
+          showAddBookDialog(context, null);
         },
         tooltip: 'Increment',
         child: Icon(Icons.add),
@@ -82,12 +82,12 @@ class _BooksPageState extends State<BooksPage> {
     });
   }
 
-  void updateData() {
+  void updateData(Book book) {
     try {
       firestoreDb
           .collection('books')
-          .document('1')
-          .updateData({'description': 'Head First Flutter'});
+          .document(book.key)
+          .updateData({'description': book.description, 'title': book.title});
     } catch (e) {
       print(e.toString());
     }
@@ -113,54 +113,67 @@ class _BooksPageState extends State<BooksPage> {
             title: Text(title),
             subtitle: Text(description),
             onTap: () {
-              //TODO show item in another page
+              showAddBookDialog(context, bookList[index]);
             },
           );
         });
   }
 
-  void showAddBookDialog(BuildContext context) async {
-    _titleController.clear();
-    _descriptionController.clear();
+  void showAddBookDialog(BuildContext context, Book book) async {
+    String btnConfirm = "Save";
+    if (book == null) {
+      _titleController.clear();
+      _descriptionController.clear();
+    } else {
+      btnConfirm = "Update";
+      _titleController.text = book.title;
+      _descriptionController.text = book.description;
+    }
     await showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            content: new Column(
+            content: Column(
               children: <Widget>[
-                new Expanded(
-                    child: new TextField(
+                Expanded(
+                    child: TextField(
                   controller: _titleController,
                   autofocus: true,
                   minLines: 2,
                   maxLines: 3,
-                  decoration: new InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Book title',
                   ),
                 )),
-                new Expanded(
-                    child: new TextField(
+                Expanded(
+                    child: TextField(
                   controller: _descriptionController,
                   autofocus: true,
                   minLines: 2,
                   maxLines: 3,
-                  decoration: new InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Some book description',
                   ),
                 ))
               ],
             ),
             actions: <Widget>[
-              new FlatButton(
+              FlatButton(
                   child: const Text('Cancel'),
                   onPressed: () {
                     Navigator.pop(context);
                   }),
-              new FlatButton(
-                  child: const Text('Save'),
+              FlatButton(
+                  child: Text(btnConfirm),
                   onPressed: () {
-                    createRecord(_titleController.text.toString(),
-                        _descriptionController.text.toString());
+                    if (book == null) {
+                      createRecord(_titleController.text.toString(),
+                          _descriptionController.text.toString());
+                    } else {
+                      book.title = _titleController.text.toString();
+                      book.description = _descriptionController.text.toString();
+                      updateData(book);
+                    }
                     Navigator.pop(context);
                   })
             ],
@@ -179,6 +192,6 @@ class _BooksPageState extends State<BooksPage> {
   }
 
   List<Book> getListFromSnapshot(List<DocumentSnapshot> documents) {
-    return documents.map((item) => Book.fromMap(item.data)).toList();
+    return documents.map((item) => Book.fromMap(item.data, item.documentID)).toList();
   }
 }
