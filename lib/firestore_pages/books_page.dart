@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:perseus/models/book.dart';
 import 'package:perseus/service/authentication.dart';
 
@@ -86,6 +87,8 @@ class _BooksPageState extends State<BooksPage> {
     try {
       firestoreDb
           .collection('books')
+          .where('user_id', isEqualTo: _userId)
+          .reference()
           .document(book.key)
           .updateData({'description': book.description, 'title': book.title});
     } catch (e) {
@@ -93,9 +96,14 @@ class _BooksPageState extends State<BooksPage> {
     }
   }
 
-  void deleteData() {
+  void deleteData(String key) {
     try {
-      firestoreDb.collection('books').document('1').delete();
+      firestoreDb
+          .collection('books')
+          .where('user_id', isEqualTo: _userId)
+          .reference()
+          .document(key)
+          .delete();
     } catch (e) {
       print(e.toString());
     }
@@ -107,14 +115,34 @@ class _BooksPageState extends State<BooksPage> {
         shrinkWrap: true,
         itemCount: bookList.length,
         itemBuilder: (context, index) {
+          String key = bookList[index].key ??
+              DateTime.now().millisecondsSinceEpoch.toString();
           String title = bookList[index].title ?? 'Não informado';
           String description = bookList[index].description ?? 'Não informado';
-          return ListTile(
-            title: Text(title),
-            subtitle: Text(description),
-            onTap: () {
-              showAddBookDialog(context, bookList[index]);
+          return Dismissible(
+            direction: DismissDirection.startToEnd,
+            onDismissed: (direction) async {
+              deleteData(key);
             },
+            key: Key(key),
+
+            background: Container(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                ),
+                color: Colors.red),
+            child: ListTile(
+              title: Text(title),
+              subtitle: Text(description),
+              onTap: () {
+                showAddBookDialog(context, bookList[index]);
+              },
+            ),
           );
         });
   }
@@ -192,6 +220,8 @@ class _BooksPageState extends State<BooksPage> {
   }
 
   List<Book> getListFromSnapshot(List<DocumentSnapshot> documents) {
-    return documents.map((item) => Book.fromMap(item.data, item.documentID)).toList();
+    return documents
+        .map((item) => Book.fromMap(item.data, item.documentID))
+        .toList();
   }
 }
